@@ -184,7 +184,8 @@ with st.sidebar:
     st.markdown("---")
     mode = st.radio(
         "📚 Mode" if lang_key == "English" else "📚 Qaab",
-        ["🏠 Home", "💬 Chat", "📝 Quiz", "📄 Study Notes", "📋 Past Paper Analyzer", "📊 My Progress"]
+        ["🏠 Home", "💬 Chat", "📝 Quiz", "📄 Study Notes",
+         "📋 Past Paper Analyzer", "🃏 Flashcards", "📅 Study Planner", "📊 My Progress"]
     )
     st.markdown("---")
     if st.button("🗑️ Clear Chat" if lang_key == "English" else "🗑️ Tirtir", use_container_width=True):
@@ -245,9 +246,11 @@ if mode == "🏠 Home":
     with col1:
         st.markdown('<div class="mode-card">💬 <b>Chat</b><br><small>Ask your tutor anything</small></div>', unsafe_allow_html=True)
         st.markdown('<div class="mode-card">📄 <b>Study Notes</b><br><small>Generate notes on any topic</small></div>', unsafe_allow_html=True)
+        st.markdown('<div class="mode-card">🃏 <b>Flashcards</b><br><small>Flip through AI study cards</small></div>', unsafe_allow_html=True)
     with col2:
         st.markdown('<div class="mode-card">📝 <b>Quiz</b><br><small>Test your knowledge</small></div>', unsafe_allow_html=True)
         st.markdown('<div class="mode-card">📋 <b>Past Paper Analyzer</b><br><small>Upload & analyze past exams</small></div>', unsafe_allow_html=True)
+        st.markdown('<div class="mode-card">📅 <b>Study Planner</b><br><small>Personalized exam schedule</small></div>', unsafe_allow_html=True)
 
     st.markdown("---")
     st.info("👈 Select a mode from the sidebar to get started!" if lang_key == "English" else "👈 Qaabka ka dooro dhinaca bidixda!")
@@ -461,6 +464,179 @@ elif mode == "📋 Past Paper Analyzer":
                     st.error(f"Error: {e}")
         else:
             st.warning("Please upload a PDF or paste exam text first.")
+
+# ════════════════════════════════════════════════════════════════
+# FLASHCARDS
+# ════════════════════════════════════════════════════════════════
+elif mode == "🃏 Flashcards":
+    st.markdown(f'''<div class="simad-header"><h1>🃏 Flashcards</h1><p>{greeting} · {faculty}</p></div>''', unsafe_allow_html=True)
+    st.caption("AI generates flashcards on any topic. Flip through them to study!" if lang_key == "English" else "AI waxay samaynaysaa kaarka waxbarashada mowduuc kasta.")
+
+    fc_topic = st.text_input(
+        "Enter a topic for flashcards:" if lang_key == "English" else "Mowduuca kaarka waxbarashada geli:",
+        placeholder="e.g. Accounting Principles, Human Anatomy, Data Structures..."
+    )
+    num_cards = st.slider("Number of cards:" if lang_key == "English" else "Tirada kaarka:", 5, 20, 10)
+
+    if st.button("🃏 Generate Flashcards", type="primary", use_container_width=True):
+        if fc_topic.strip():
+            with st.spinner("Generating flashcards..."):
+                try:
+                    lang_i = "in English" if lang_key == "English" else "in Somali"
+                    prompt = (
+                        f"Create exactly {num_cards} flashcards {lang_i} about '{fc_topic}' for a {faculty} student at SIMAD University. "
+                        f"Format EXACTLY like this for each card:\n"
+                        f"FRONT: [concept or question]\nBACK: [clear explanation or answer]\n---\n"
+                        f"Make them concise and educational."
+                    )
+                    raw = ask_ai([{"role": "user", "content": prompt}], system_base)
+                    cards = []
+                    for block in raw.split("---"):
+                        block = block.strip()
+                        if "FRONT:" in block and "BACK:" in block:
+                            lines = block.split("\n")
+                            front = next((l.replace("FRONT:","").strip() for l in lines if l.startswith("FRONT:")), "")
+                            back  = next((l.replace("BACK:","").strip() for l in lines if l.startswith("BACK:")), "")
+                            if front and back:
+                                cards.append({"front": front, "back": back})
+                    st.session_state.flashcards = cards
+                    st.session_state.fc_index = 0
+                    st.session_state.fc_flipped = False
+                    st.session_state.fc_topic = fc_topic
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Error: {e}")
+
+    if "flashcards" in st.session_state and st.session_state.flashcards:
+        cards = st.session_state.flashcards
+        idx   = st.session_state.fc_index
+        flipped = st.session_state.fc_flipped
+
+        st.markdown("---")
+        st.progress((idx) / len(cards), text=f"Card {idx+1} of {len(cards)} — {st.session_state.fc_topic}")
+
+        card = cards[idx]
+        if not flipped:
+            st.markdown(f"""
+            <div style="background:linear-gradient(135deg,#003366,#005099);color:white;border-radius:16px;
+                        padding:3rem 2rem;text-align:center;min-height:180px;
+                        display:flex;align-items:center;justify-content:center;flex-direction:column;
+                        box-shadow:0 4px 15px rgba(0,51,102,0.3);">
+                <div style="font-size:0.9rem;color:#C9A84C;margin-bottom:0.5rem;">CONCEPT</div>
+                <div style="font-size:1.4rem;font-weight:bold;">{card['front']}</div>
+                <div style="font-size:0.8rem;color:#aac4e0;margin-top:1rem;">👆 Click "Reveal" to see the answer</div>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown(f"""
+            <div style="background:linear-gradient(135deg,#C9A84C,#e8c96a);color:#003366;border-radius:16px;
+                        padding:3rem 2rem;text-align:center;min-height:180px;
+                        display:flex;align-items:center;justify-content:center;flex-direction:column;
+                        box-shadow:0 4px 15px rgba(201,168,76,0.3);">
+                <div style="font-size:0.9rem;color:#003366;margin-bottom:0.5rem;opacity:0.7;">ANSWER</div>
+                <div style="font-size:1.2rem;font-weight:600;">{card['back']}</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown("")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            if st.button("⬅️ Previous", use_container_width=True, disabled=(idx == 0)):
+                st.session_state.fc_index -= 1
+                st.session_state.fc_flipped = False
+                st.rerun()
+        with col2:
+            label = "👁️ Reveal" if not flipped else "🔄 Hide"
+            if st.button(label, use_container_width=True, type="primary"):
+                st.session_state.fc_flipped = not flipped
+                st.rerun()
+        with col3:
+            if st.button("➡️ Next", use_container_width=True, disabled=(idx >= len(cards)-1)):
+                st.session_state.fc_index += 1
+                st.session_state.fc_flipped = False
+                st.rerun()
+
+        if idx == len(cards) - 1:
+            st.success("🎉 You've reviewed all flashcards!" if lang_key == "English" else "🎉 Dhammaan kaarka waxaad dib u egtay!")
+
+# ════════════════════════════════════════════════════════════════
+# STUDY PLANNER
+# ════════════════════════════════════════════════════════════════
+elif mode == "📅 Study Planner":
+    st.markdown(f'''<div class="simad-header"><h1>📅 Study Planner</h1><p>{greeting} · {faculty}</p></div>''', unsafe_allow_html=True)
+    st.caption("Enter your exam details and get a personalized day-by-day study schedule." if lang_key == "English" else "Xogta imtixaankaaga geli, jadwal waxbarasho maalin-maalin ah ayaad heli doontaa.")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        exam_subject = st.text_input(
+            "📚 Exam subject:" if lang_key == "English" else "📚 Maadada imtixaanka:",
+            placeholder="e.g. Data Structures, Business Law..."
+        )
+    with col2:
+        exam_date = st.date_input(
+            "📅 Exam date:" if lang_key == "English" else "📅 Taariikhda imtixaanka:",
+        )
+
+    study_hours = st.slider(
+        "⏰ Study hours per day:" if lang_key == "English" else "⏰ Saacadaha waxbarashada maalintii:",
+        1, 8, 3
+    )
+    current_level = st.radio(
+        "📊 Your current level:" if lang_key == "English" else "📊 Heerkaaga hadda:",
+        ["Beginner", "Intermediate", "Advanced"] if lang_key == "English" else ["Bilow", "Dhexdhexaad", "Sare"]
+    )
+
+    if st.button("📅 Generate Study Plan", type="primary", use_container_width=True):
+        if exam_subject.strip():
+            days_left = (exam_date - __import__('datetime').date.today()).days
+            if days_left <= 0:
+                st.error("Please select a future exam date." if lang_key == "English" else "Fadlan taariikhda mustaqbalka ah dooro.")
+            else:
+                with st.spinner("Creating your personalized study plan..." if lang_key == "English" else "Qorshaha waxbarashadaada gaarka ah la samaynayaa..."):
+                    try:
+                        lang_i = "in English" if lang_key == "English" else "in Somali"
+                        prompt = (
+                            f"Create a detailed {days_left}-day study plan {lang_i} for a {faculty} student at SIMAD University, Somalia. "
+                            f"Exam subject: {exam_subject}. "
+                            f"Days until exam: {days_left}. "
+                            f"Study hours per day: {study_hours}. "
+                            f"Student level: {current_level}. "
+                            f"Include: "
+                            f"1) A day-by-day schedule with specific topics for each day, "
+                            f"2) Weekly milestones, "
+                            f"3) Recommended resources and study techniques, "
+                            f"4) Final week revision strategy, "
+                            f"5) Day-before-exam tips. "
+                            f"Make it realistic, motivating, and tailored to a Somali university student."
+                        )
+                        plan = ask_ai([{"role": "user", "content": prompt}], system_base)
+                        st.session_state.study_plan = plan
+                        st.session_state.plan_subject = exam_subject
+                        st.session_state.plan_days = days_left
+                    except Exception as e:
+                        st.error(f"Error: {e}")
+
+    if "study_plan" in st.session_state:
+        st.markdown("---")
+        days = st.session_state.plan_days
+        subj = st.session_state.plan_subject
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown(f'<div class="stat-box"><div class="stat-number">{days}</div><div class="stat-label">Days to Exam</div></div>', unsafe_allow_html=True)
+        with col2:
+            st.markdown(f'<div class="stat-box"><div class="stat-number">{study_hours}h</div><div class="stat-label">Per Day</div></div>', unsafe_allow_html=True)
+
+        st.markdown(f"### 📅 Study Plan — {subj}")
+        st.markdown(st.session_state.study_plan)
+        st.markdown("---")
+        st.download_button(
+            "⬇️ Download Study Plan" if lang_key == "English" else "⬇️ Qorshaha Soo deji",
+            data=st.session_state.study_plan,
+            file_name=f"SIMAD_Study_Plan_{subj.replace(' ','_')}.txt",
+            mime="text/plain",
+            use_container_width=True
+        )
 
 # ════════════════════════════════════════════════════════════════
 # MY PROGRESS
