@@ -38,8 +38,9 @@ with st.sidebar:
     st.caption("Powered by Groq AI")
     st.markdown("---")
 
-    api_key = st.text_input("🔑 Groq API Key", type="password",
-                             placeholder="Paste your Groq API key here")
+    api_key = st.secrets.get("GROQ_API_KEY", "") or st.text_input(
+        "🔑 Groq API Key", type="password", placeholder="Paste your Groq API key here"
+    )
     language = st.radio("🌐 Language", ["English", "Somali (Soomaali)"])
     lang_key = "Somali" if "Soomaali" in language else "English"
 
