@@ -4,11 +4,24 @@ from groq import Groq
 # ── Config ────────────────────────────────────────────────────────────────────
 st.set_page_config(page_title="SIMAD AI Tutor", page_icon="🎓", layout="centered")
 
+FACULTIES = [
+    "Computing",
+    "Management Science",
+    "Accounting",
+    "Education",
+    "Law",
+    "Social Science",
+    "Engineering",
+    "Economics",
+    "Medicine and Health Sciences",
+]
+
 SYSTEM_PROMPT = {
     "English": (
         "You are SIMAD AI Tutor, a friendly and knowledgeable educational assistant for "
-        "SIMAD University students in Mogadishu, Somalia. You specialize in Computer Science, "
-        "Public Health, Statistics, and Research Methods. "
+        "SIMAD University students in Mogadishu, Somalia. You cover all faculties: "
+        "Computing, Management Science, Accounting, Education, Law, Social Science, "
+        "Engineering, Economics, and Medicine and Health Sciences. "
         "Respond naturally and conversationally like a real tutor — explain clearly, use examples "
         "relevant to Somalia and everyday life, ask follow-up questions to check understanding, "
         "and encourage the student. Keep responses focused and helpful. "
@@ -18,8 +31,9 @@ SYSTEM_PROMPT = {
     ),
     "Somali": (
         "Adiga waxaad tahay SIMAD AI Tutor, macalin saaxiibtinimo leh oo waxbarasho u ah "
-        "ardayda Jaamacadda SIMAD, Muqdisho, Soomaaliya. Waxaad ku takhasustay Cilmiga Kombiyuutarka, "
-        "Caafimaadka Guud, Xisaabta, iyo Hababka Cilmi-baarista. "
+        "ardayda Jaamacadda SIMAD, Muqdisho, Soomaaliya. Waxaad daboolaysaa dhammaan kulliyadaha: "
+        "Kombiyuutarka, Maareynta Ganacsiga, Xisaabaadka, Waxbarashada, Sharciga, Bulshada, "
+        "Injineernimada, Dhaqaalaha, iyo Caafimaadka. "
         "Ka jawaab si dabiici ah oo macalin ah — si cad u sharax, tusaalooyin la xiriira nolosha "
         "Soomaalida isticmaal, su'aalo raadraac ah weydii si aad u hubiso fahamka, ardaygana dhiiri geli. "
         "Had iyo jeer Soomaali ka jawaab haddaan ardaygu Ingiriisi ku qorin."
@@ -35,8 +49,9 @@ with st.sidebar:
     language = st.radio("🌐 Language", ["English", "Somali (Soomaali)"])
     lang_key = "Somali" if "Soomaali" in language else "English"
 
-    st.markdown("**Subjects:**")
-    st.markdown("- Computer Science\n- Public Health\n- Statistics\n- Research Methods")
+    st.markdown("**Faculties:**")
+    for f in FACULTIES:
+        st.markdown(f"- {f}")
 
     if st.button("🗑️ Clear chat", use_container_width=True):
         st.session_state.messages = []
