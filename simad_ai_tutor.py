@@ -1,5 +1,7 @@
 import streamlit as st
 from groq import Groq
+import pdfplumber
+import io
 
 # ── Config ────────────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -79,7 +81,7 @@ with st.sidebar:
     st.markdown("---")
     mode = st.radio(
         "📚 Mode" if lang_key == "English" else "📚 Qaab",
-        ["💬 Chat", "📝 Quiz", "📄 Study Notes"]
+        ["💬 Chat", "📝 Quiz", "📄 Study Notes", "📋 Past Paper Analyzer"]
     )
     st.markdown("---")
     if st.button("🗑️ Clear" if lang_key == "English" else "🗑️ Tirtir", use_container_width=True):
@@ -268,6 +270,98 @@ elif mode == "📄 Study Notes":
             mime="text/plain",
             use_container_width=True
         )
+
+# ════════════════════════════════════════════════════════════════
+# MODE 4: PAST PAPER ANALYZER
+# ════════════════════════════════════════════════════════════════
+elif mode == "📋 Past Paper Analyzer":
+    st.markdown(f"## {greeting}")
+    st.markdown(f"### 📋 {'Past Paper Analyzer' if lang_key == 'English' else 'Falanqaynta Warqadaha Hore'}")
+    st.caption(
+        "Upload a past exam paper (PDF or paste text) and I'll explain every question with model answers." if lang_key == "English"
+        else "Warqada imtixaanka hore soo geli (PDF ama qoraal), waxaan kuu sharxi doonaa su'aal kasta oo jawaab ku habboon."
+    )
+
+    input_method = st.radio(
+        "How do you want to provide the exam?" if lang_key == "English" else "Sidee u gudbinaysaa imtixaanka?",
+        ["📎 Upload PDF", "✏️ Paste Text"]
+    )
+
+    exam_text = ""
+
+    if input_method == "📎 Upload PDF":
+        uploaded_file = st.file_uploader(
+            "Upload past exam paper (PDF)" if lang_key == "English" else "Soo geli warqada imtixaanka (PDF)",
+            type=["pdf"]
+        )
+        if uploaded_file:
+            with st.spinner("Reading PDF..." if lang_key == "English" else "PDF la akhriyayaa..."):
+                try:
+                    with pdfplumber.open(io.BytesIO(uploaded_file.read())) as pdf:
+                        exam_text = "\n".join(page.extract_text() or "" for page in pdf.pages)
+                    st.success(f"✅ PDF loaded — {len(exam_text)} characters extracted.")
+                except Exception as e:
+                    st.error(f"Could not read PDF: {e}")
+    else:
+        exam_text = st.text_area(
+            "Paste the exam questions here:" if lang_key == "English" else "Su'aalaha imtixaanka halkan ku dhaji:",
+            height=200,
+            placeholder="Paste exam questions here..."
+        )
+
+    analysis_type = st.radio(
+        "What do you want?" if lang_key == "English" else "Maxaad rabta?",
+        [
+            "📖 Explain all questions with model answers",
+            "🔑 Key topics & what to study",
+            "⚡ Quick summary of the exam",
+        ]
+    )
+
+    if st.button("🔍 Analyze Exam" if lang_key == "English" else "🔍 Falanqee Imtixaanka", type="primary", use_container_width=True):
+        if exam_text.strip():
+            with st.spinner("Analyzing exam paper..." if lang_key == "English" else "Warqada imtixaanka la falanqaynayaa..."):
+                try:
+                    lang_instruction = "in English" if lang_key == "English" else "in Somali"
+
+                    if "Explain all questions" in analysis_type:
+                        prompt = (
+                            f"You are analyzing a past exam paper for a {faculty} student at SIMAD University, Somalia. "
+                            f"For each question in the paper below, provide: "
+                            f"1) The question number and text, "
+                            f"2) A clear model answer, "
+                            f"3) Key concepts the student should know. "
+                            f"Respond {lang_instruction}.\n\nEXAM PAPER:\n{exam_text[:6000]}"
+                        )
+                    elif "Key topics" in analysis_type:
+                        prompt = (
+                            f"Analyze this {faculty} exam paper from SIMAD University, Somalia. "
+                            f"Identify: 1) The main topics tested, 2) Which topics appeared most, "
+                            f"3) What the student should prioritize studying, 4) Predicted topics for next exam. "
+                            f"Respond {lang_instruction}.\n\nEXAM PAPER:\n{exam_text[:6000]}"
+                        )
+                    else:
+                        prompt = (
+                            f"Give a quick summary of this {faculty} exam paper from SIMAD University. "
+                            f"Include: number of questions, main topics, difficulty level, and key advice. "
+                            f"Respond {lang_instruction}.\n\nEXAM PAPER:\n{exam_text[:6000]}"
+                        )
+
+                    result = ask_ai([{"role": "user", "content": prompt}], system_base)
+                    st.markdown("---")
+                    st.markdown(result)
+                    st.markdown("---")
+                    st.download_button(
+                        label="⬇️ Download Analysis" if lang_key == "English" else "⬇️ Falanqaynta Soo deji",
+                        data=result,
+                        file_name="SIMAD_Exam_Analysis.txt",
+                        mime="text/plain",
+                        use_container_width=True
+                    )
+                except Exception as e:
+                    st.error(f"Error: {e}")
+        else:
+            st.warning("Please upload a PDF or paste exam text first." if lang_key == "English" else "Fadlan PDF soo geli ama qoraalka imtixaanka ku dhaji.")
 
 # ── Footer ────────────────────────────────────────────────────────────────────
 st.markdown("---")
