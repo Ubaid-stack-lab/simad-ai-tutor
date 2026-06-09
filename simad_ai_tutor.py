@@ -4,88 +4,102 @@ from groq import Groq
 # ── Config ────────────────────────────────────────────────────────────────────
 st.set_page_config(page_title="SIMAD AI Tutor", page_icon="🎓", layout="centered")
 
-SUBJECTS = {
-    "Computer Science": ["Introduction to Programming", "Data Structures", "Algorithms",
-                         "Networking Basics", "Databases", "Operating Systems"],
-    "Public Health":    ["Epidemiology", "Health Promotion", "Disease Prevention",
-                         "Environmental Health", "Health Policy", "Biostatistics"],
-    "Statistics":       ["Descriptive Statistics", "Probability", "Hypothesis Testing",
-                         "Regression Analysis", "ANOVA", "Data Visualization"],
-    "Research Methods": ["Research Design", "Literature Review", "Data Collection",
-                         "Qualitative Methods", "Quantitative Methods", "Academic Writing"],
-}
-
 SYSTEM_PROMPT = {
     "English": (
-        "You are SIMAD AI Tutor, an educational assistant for SIMAD University students in Mogadishu, Somalia. "
-        "Respond clearly in English. Always structure your response with:\n\n"
-        "## Explanation\n(Clear explanation of the topic)\n\n"
-        "## Real-World Example\n(A practical example relevant to Somalia or everyday life)\n\n"
-        "## Quiz Questions\n(Three questions with answers to test understanding)"
+        "You are SIMAD AI Tutor, a friendly and knowledgeable educational assistant for "
+        "SIMAD University students in Mogadishu, Somalia. You specialize in Computer Science, "
+        "Public Health, Statistics, and Research Methods. "
+        "Respond naturally and conversationally like a real tutor — explain clearly, use examples "
+        "relevant to Somalia and everyday life, ask follow-up questions to check understanding, "
+        "and encourage the student. Keep responses focused and helpful. "
+        "If asked for a quiz or practice questions, provide them. "
+        "If asked to explain a concept, explain it clearly with examples. "
+        "Always respond in English unless the student writes in Somali."
     ),
     "Somali": (
-        "Adiga waxaad tahay SIMAD AI Tutor, caawimaha waxbarashada ee ardayda Jaamacadda SIMAD, Muqdisho. "
-        "Ka jawaab si cad oo Soomaali ah. Jawaabta had iyo jeer u qaybi sidan:\n\n"
-        "## Sharaxaad\n(Sharax cad oo mowduuca ah)\n\n"
-        "## Tusaale Runta ah\n(Tusaale ku habboon nolosha Soomaalida)\n\n"
-        "## Su'aalaha Imtixaanka\n(Saddex su'aalood oo leh jawaabaha)"
+        "Adiga waxaad tahay SIMAD AI Tutor, macalin saaxiibtinimo leh oo waxbarasho u ah "
+        "ardayda Jaamacadda SIMAD, Muqdisho, Soomaaliya. Waxaad ku takhasustay Cilmiga Kombiyuutarka, "
+        "Caafimaadka Guud, Xisaabta, iyo Hababka Cilmi-baarista. "
+        "Ka jawaab si dabiici ah oo macalin ah — si cad u sharax, tusaalooyin la xiriira nolosha "
+        "Soomaalida isticmaal, su'aalo raadraac ah weydii si aad u hubiso fahamka, ardaygana dhiiri geli. "
+        "Had iyo jeer Soomaali ka jawaab haddaan ardaygu Ingiriisi ku qorin."
     ),
 }
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.title("🎓 SIMAD AI Tutor")
-    st.caption("Powered by Groq AI")
+    st.caption("Jaamacadda SIMAD · Muqdisho")
     st.markdown("---")
 
-    api_key = st.secrets.get("GROQ_API_KEY", "") or st.text_input(
-        "🔑 Groq API Key", type="password", placeholder="Paste your Groq API key here"
-    )
     language = st.radio("🌐 Language", ["English", "Somali (Soomaali)"])
     lang_key = "Somali" if "Soomaali" in language else "English"
 
-    st.markdown("---")
-    st.caption("Phase 1 — Computer Science, Public Health, Statistics, Research Methods")
+    st.markdown("**Subjects:**")
+    st.markdown("- Computer Science\n- Public Health\n- Statistics\n- Research Methods")
 
-# ── Main ──────────────────────────────────────────────────────────────────────
-st.markdown("## 🎓 SIMAD AI Tutor")
-st.markdown("Select a subject and topic to get a structured lesson and quiz.")
+    if st.button("🗑️ Clear chat", use_container_width=True):
+        st.session_state.messages = []
+        st.rerun()
+
+    st.markdown("---")
+    st.caption("Phase 1 Beta · SIMAD University")
+
+# ── API Key ───────────────────────────────────────────────────────────────────
+api_key = st.secrets.get("GROQ_API_KEY", "") or st.text_input(
+    "🔑 Groq API Key", type="password", placeholder="Paste your Groq API key here"
+)
 
 if not api_key:
-    st.info("Enter your Groq API key in the sidebar to begin.")
+    st.info("Enter your Groq API key to begin.")
     st.stop()
 
 client = Groq(api_key=api_key)
 
-col1, col2 = st.columns(2)
-with col1:
-    subject = st.selectbox("📚 Subject", list(SUBJECTS.keys()))
-with col2:
-    topic = st.selectbox("📖 Topic", SUBJECTS[subject])
+# ── Chat history ──────────────────────────────────────────────────────────────
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-custom_q = st.text_input("💬 Ask a specific question (optional)",
-                          placeholder="e.g. What is the difference between TCP and UDP?")
+if "lang_key" not in st.session_state:
+    st.session_state.lang_key = lang_key
 
-if st.button("Generate Lesson ✨", type="primary", use_container_width=True):
-    if custom_q.strip():
-        user_prompt = f"Subject: {subject}\nTopic: {topic}\nStudent question: {custom_q}"
-    else:
-        user_prompt = f"Teach me about '{topic}' from the subject '{subject}'."
+# Reset chat if language changed
+if st.session_state.lang_key != lang_key:
+    st.session_state.messages = []
+    st.session_state.lang_key = lang_key
 
-    with st.spinner("Generating your lesson..."):
-        try:
-            response = client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
-                messages=[
-                    {"role": "system", "content": SYSTEM_PROMPT[lang_key]},
-                    {"role": "user", "content": user_prompt},
-                ],
-            )
-            st.markdown("---")
-            st.markdown(response.choices[0].message.content)
-        except Exception as e:
-            st.error(f"Error: {e}")
+# ── Header ────────────────────────────────────────────────────────────────────
+st.markdown("## 🎓 SIMAD AI Tutor")
+if lang_key == "English":
+    st.caption("Ask me anything about your studies — I'm here to help!")
+else:
+    st.caption("Wax kasta oo ku saabsan waxbarashadaada i weydii — waan kaa caawin doonaa!")
 
-# ── Footer ────────────────────────────────────────────────────────────────────
-st.markdown("---")
-st.caption("SIMAD University · Mogadishu, Somalia · Phase 1 Beta")
+# ── Display chat messages ─────────────────────────────────────────────────────
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
+
+# ── Chat input ────────────────────────────────────────────────────────────────
+placeholder = "Ask a question..." if lang_key == "English" else "Su'aal weydii..."
+
+if prompt := st.chat_input(placeholder):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    with st.chat_message("assistant"):
+        with st.spinner(""):
+            try:
+                response = client.chat.completions.create(
+                    model="llama-3.3-70b-versatile",
+                    messages=[
+                        {"role": "system", "content": SYSTEM_PROMPT[lang_key]},
+                        *st.session_state.messages,
+                    ],
+                )
+                reply = response.choices[0].message.content
+                st.markdown(reply)
+                st.session_state.messages.append({"role": "assistant", "content": reply})
+            except Exception as e:
+                st.error(f"Error: {e}")
