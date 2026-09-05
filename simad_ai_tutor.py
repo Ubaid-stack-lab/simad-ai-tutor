@@ -174,13 +174,25 @@ api_key = st.secrets.get("GROQ_API_KEY", "") or st.text_input(
     "🔑 Groq API Key", type="password", placeholder="Paste your Groq API key here"
 )
 
+# Groq retired llama-3.3-70b-versatile for free/developer accounts on 16 Aug 2026.
+# gpt-oss-120b is Groq's recommended replacement; gpt-oss-20b is the fallback.
+GROQ_MODELS = ["openai/gpt-oss-120b", "openai/gpt-oss-20b"]
+
 def ask_ai(messages, system):
     client = Groq(api_key=api_key)
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[{"role": "system", "content": system}, *messages],
-    )
-    return response.choices[0].message.content
+    last_error = None
+    for model in GROQ_MODELS:
+        try:
+            response = client.chat.completions.create(
+                model=model,
+                messages=[{"role": "system", "content": system}, *messages],
+            )
+            return response.choices[0].message.content
+        except Exception as e:  # model unavailable -> try the next one
+            last_error = e
+            if "model_not_found" not in str(e) and "does not exist" not in str(e):
+                raise
+    raise last_error
 
 # ── Init session state ────────────────────────────────────────────────────────
 if "messages"       not in st.session_state: st.session_state.messages = []
