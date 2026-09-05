@@ -8,10 +8,10 @@ import plotly.graph_objects as go
 
 # ── Config ────────────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="SIMAD AI Tutor",
+    page_title="Caawiye SIMAD AI Tutor",
     page_icon="🎓",
     layout="centered",
-    menu_items={"About": "SIMAD AI Tutor — Jaamacadda SIMAD · Muqdisho, Soomaaliya"}
+    menu_items={"About": "Caawiye SIMAD AI Tutor — Jaamacadda SIMAD · Muqdisho, Soomaaliya"}
 )
 
 # ── Custom CSS (SIMAD branding) ───────────────────────────────────────────────
@@ -127,7 +127,7 @@ SUGGESTED_QUESTIONS = {
 
 SYSTEM_PROMPT = {
     "English": (
-        "You are SIMAD AI Tutor, a friendly, encouraging, and knowledgeable educational assistant "
+        "You are Caawiye SIMAD AI Tutor, a friendly, encouraging, and knowledgeable educational assistant "
         "for SIMAD University students in Mogadishu, Somalia. "
         "You cover all faculties: Computing, Management Science, Accounting, Education, Law, "
         "Social Science, Engineering, Economics, and Medicine and Health Sciences. "
@@ -136,7 +136,7 @@ SYSTEM_PROMPT = {
         "use examples relevant to Somalia and everyday life, and always encourage the student."
     ),
     "Somali": (
-        "Adiga waxaad tahay SIMAD AI Tutor, macalin saaxiibtinimo leh oo waxbarasho u ah "
+        "Adiga waxaad tahay Caawiye SIMAD AI Tutor, macalin saaxiibtinimo leh oo waxbarasho u ah "
         "ardayda Jaamacadda SIMAD, Muqdisho, Soomaaliya. "
         "Kulliyada ardaygu xushay waa: {faculty}. Jawaabaha u habbee goobtooda. "
         "Ka jawaab si dabiici ah oo macalin ah — ardaygana had iyo jeer dhiiri geli."
@@ -166,7 +166,7 @@ if "last_activity"  not in st.session_state: st.session_state.last_activity = No
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.image(SIMAD_LOGO, use_container_width=True)
-    st.markdown("### 🎓 SIMAD AI Tutor")
+    st.markdown("### 🎓 Caawiye SIMAD AI Tutor")
     st.caption("Jaamacadda SIMAD · Muqdisho")
     st.markdown("---")
 
@@ -202,7 +202,7 @@ with st.sidebar:
 
 if not api_key:
     st.image(SIMAD_LOGO, width=250)
-    st.markdown('<div class="simad-header"><h1>🎓 SIMAD AI Tutor</h1><p>Jaamacadda SIMAD · Muqdisho, Soomaaliya</p></div>', unsafe_allow_html=True)
+    st.markdown('<div class="simad-header"><h1>🎓 Caawiye SIMAD AI Tutor</h1><p>Jaamacadda SIMAD · Muqdisho, Soomaaliya</p></div>', unsafe_allow_html=True)
     st.info("Enter your Groq API key in the sidebar to begin.")
     st.stop()
 
@@ -217,7 +217,7 @@ if student_name:
 if mode == "🏠 Home":
     st.markdown(f'''
     <div class="simad-header">
-        <h1>🎓 SIMAD AI Tutor</h1>
+        <h1>🎓 Caawiye SIMAD AI Tutor</h1>
         <p>Jaamacadda SIMAD · Muqdisho, Soomaaliya · Powered by AI</p>
     </div>
     ''', unsafe_allow_html=True)
@@ -702,4 +702,4 @@ elif mode == "📊 My Progress":
         st.markdown("👈 Go to **Quiz** mode to get started.")
 
 # ── Footer ────────────────────────────────────────────────────────────────────
-st.markdown('<div class="simad-footer">© 2026 SIMAD University · Mogadishu, Somalia · AI Tutor · Built with ❤️ for Somali students</div>', unsafe_allow_html=True)
+st.markdown('<div class="simad-footer">© 2026 SIMAD University · Mogadishu, Somalia · Caawiye SIMAD AI Tutor · Built with ❤️ for Somali students</div>', unsafe_allow_html=True)
