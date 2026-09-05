@@ -77,6 +77,16 @@ st.markdown("""
     section[data-testid="stSidebar"] * { color: white !important; }
     section[data-testid="stSidebar"] .stRadio label { color: white !important; }
     section[data-testid="stSidebar"] .stSelectbox label { color: white !important; }
+    /* Inputs have a white field: keep their text dark so it stays readable */
+    section[data-testid="stSidebar"] div[data-baseweb="select"] > div,
+    section[data-testid="stSidebar"] div[data-baseweb="select"] > div *,
+    section[data-testid="stSidebar"] div[data-baseweb="select"] svg,
+    section[data-testid="stSidebar"] .stTextInput input {
+        color: #003366 !important;
+        fill: #003366 !important;
+        background-color: #ffffff !important;
+    }
+    section[data-testid="stSidebar"] .stTextInput input::placeholder { color: #888 !important; }
 
     /* Primary buttons */
     .stButton > button[kind="primary"] {
