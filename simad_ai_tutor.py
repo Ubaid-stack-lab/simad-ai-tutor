@@ -87,12 +87,17 @@ st.markdown("""
         background-color: #ffffff !important;
     }
     section[data-testid="stSidebar"] .stTextInput input::placeholder { color: #888 !important; }
-    section[data-testid="stSidebar"] div[data-testid="stSelectbox"] div[data-baseweb="select"],
-    section[data-testid="stSidebar"] div[data-testid="stSelectbox"] div[data-baseweb="select"] * {
+    section[data-testid="stSidebar"] div[data-testid="stSelectbox"] input,
+    section[data-testid="stSidebar"] div[data-testid="stSelectbox"] [role="combobox"],
+    section[data-testid="stSidebar"] div[data-testid="stSelectbox"] [role="group"],
+    section[data-testid="stSidebar"] div[data-testid="stSelectbox"] button,
+    section[data-testid="stSidebar"] div[data-testid="stSelectbox"] svg {
         color: #003366 !important;
         -webkit-text-fill-color: #003366 !important;
         fill: #003366 !important;
+        background-color: #ffffff !important;
     }
+    section[data-testid="stSidebar"] div[data-testid="stSelectbox"] input::placeholder { color: #888 !important; -webkit-text-fill-color: #888 !important; }
     section[data-testid="stSidebar"] div[data-testid="stSelectbox"] label,
     section[data-testid="stSidebar"] div[data-testid="stSelectbox"] label * {
         color: white !important;
