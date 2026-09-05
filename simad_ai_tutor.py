@@ -87,6 +87,17 @@ st.markdown("""
         background-color: #ffffff !important;
     }
     section[data-testid="stSidebar"] .stTextInput input::placeholder { color: #888 !important; }
+    section[data-testid="stSidebar"] div[data-testid="stSelectbox"] div[data-baseweb="select"],
+    section[data-testid="stSidebar"] div[data-testid="stSelectbox"] div[data-baseweb="select"] * {
+        color: #003366 !important;
+        -webkit-text-fill-color: #003366 !important;
+        fill: #003366 !important;
+    }
+    section[data-testid="stSidebar"] div[data-testid="stSelectbox"] label,
+    section[data-testid="stSidebar"] div[data-testid="stSelectbox"] label * {
+        color: white !important;
+        -webkit-text-fill-color: white !important;
+    }
 
     /* Primary buttons */
     .stButton > button[kind="primary"] {
